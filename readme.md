@@ -9,4 +9,4 @@ java -Dserver.port=8091 -jar target/spring-boot-kafka-1.jar
 java -Dserver.port=8092 -jar target/spring-boot-kafka-1.jar
 java -Dserver.port=8093 -jar target/spring-boot-kafka-1.jar
 
-Visit http://localhost:8090/status (or 8091,8092 etc) and you should see status updates of the cluster you're running.
+Visit http://localhost:8090/status (or 8091,8092 etc.) and you should see status updates of the cluster you're running.
