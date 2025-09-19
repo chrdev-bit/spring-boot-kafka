@@ -2,7 +2,7 @@
 
 This application can run multiple Spring-Boot servers that integrate with Kafka messaging to check the used heap.
 
-To run, start-up Kafka (on port 8092) then as a 4 node cluster for example:
+To run, start-up Kafka (on port 9092) then as a 4 node cluster for example:
 
 java -Dserver.port=8090 -jar target/spring-boot-kafka-1.jar
 java -Dserver.port=8091 -jar target/spring-boot-kafka-1.jar
