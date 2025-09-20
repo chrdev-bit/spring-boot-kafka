@@ -12,7 +12,7 @@
 	<artifactId>spring-boot-kafka</artifactId>
 	<version>1</version>
 	<name>spring-boot-kafka</name>
-	<description>Demo project for Spring Boot with Kafka</description>
+	<description>Spring Boot with Kafka</description>
 	<url/>
 	<licenses>
 		<license/>
