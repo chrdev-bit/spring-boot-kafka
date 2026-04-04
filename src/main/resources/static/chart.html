@@ -1,0 +1,111 @@
+<html>
+<head>
+    <title>Kafka Data Metrics</title>
+</head>
+<body>
+
+<canvas id="kafkaChart" width="900" height="400"></canvas>
+<script src="chart.js"></script>
+<script>
+    const ctx = document.getElementById('kafkaChart').getContext('2d');
+
+    const trackedMetrics = [
+        "consumer-node-metrics.outgoing-byte-rate",
+        "consumer-node-metrics.incoming-byte-rate",
+        "producer-node-metrics.outgoing-byte-rate",
+        "producer-node-metrics.incoming-byte-rate"
+    ];
+
+      const colors = [
+      {
+        border: 'rgba(54, 162, 235, 1)',
+        background: 'rgba(54, 162, 235, 0.2)'
+      },
+      {
+        border: 'rgba(255, 99, 132, 1)',
+        background: 'rgba(255, 99, 132, 0.2)'
+      },
+      {
+        border: 'rgba(75, 192, 192, 1)',
+        background: 'rgba(75, 192, 192, 0.2)'
+      },
+      {
+        border: 'rgba(255, 206, 86, 1)',
+        background: 'rgba(255, 206, 86, 0.2)'
+      }
+    ];
+
+    //empty chart container
+    const chartData = {
+      labels: [],
+      datasets: trackedMetrics.map((metric, i) => {
+        const color = colors[i % colors.length];
+        return {
+          label: metric,
+          data: [],
+          borderColor: color.border,
+          backgroundColor: color.background,
+          fill: true,
+          tension: 0.3
+        };
+      })
+    };
+
+    const kafkaChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: 'Kafka Metrics Overview',
+            font: {
+              family: 'Poppins, Inter, sans-serif',
+              size: 18,
+              weight: '600'
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true },
+          x: { title: { display: true, text: 'Timestamp' } }
+        }
+      }
+    });
+
+    function pollMetrics() {
+      fetch("/api/kafka-metrics")
+        .then(res => res.json())
+        .then(data => {
+          const timestamp = new Date().toLocaleTimeString();
+          chartData.labels.push(timestamp);
+
+          chartData.datasets.forEach(ds => {
+            const fullKey = trackedMetrics.find(k => k === ds.label);
+            let val = data[fullKey];
+            val = (val === "NaN") ? 0 : Number(val);
+            ds.data.push(val);
+          });
+
+          //trim recent
+          if (chartData.labels.length > 20) {
+            chartData.labels.shift();
+            chartData.datasets.forEach(ds => ds.data.shift());
+          }
+
+          kafkaChart.update();
+        })
+        .catch(err => console.error("Error fetching metrics:", err));
+    }
+
+    //poll
+    setInterval(pollMetrics, 2000);
+</script>
+</body>
+</html>

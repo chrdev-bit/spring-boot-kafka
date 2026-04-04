@@ -1,5 +1,6 @@
 package com.cb.spring_boot.kafka.producer;
 
+import com.cb.spring_boot.kafka.service.KafkaMetricsSnapshotService;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,9 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    
+    @Autowired
+    private KafkaMetricsSnapshotService snapshotService;
+
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -30,6 +33,15 @@ public class KafkaProducerConfig {
     }
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory());
+
+        template.execute(producer -> {
+            snapshotService.setProducer(producer);
+            return null;
+        });
+
+        return template;
     }
+
+
 }

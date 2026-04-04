@@ -1,6 +1,8 @@
 package com.cb.spring_boot.kafka.controller;
 
+import com.cb.spring_boot.kafka.model.KafkaMetricsSnapshot;
 import com.cb.spring_boot.kafka.producer.MessageProducer;
+import com.cb.spring_boot.kafka.service.KafkaMetricsSnapshotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +17,20 @@ public class KafkaController {
     private MessageProducer messageProducer;
 
     @Autowired
+    private KafkaMetricsSnapshotService snapshotService;
+
+    @Autowired
     private Buffer buffer;
+
+    @GetMapping("/")
+    public @ResponseBody String home() {
+        return "Hello Kafka";
+    }
+
+    @GetMapping("/api/kafka-metrics")
+    public Map<String, Double> getKafkaMetrics() {
+        return snapshotService.getSnapshot();
+    }
 
     @GetMapping("/status")
     public @ResponseBody String status() {
