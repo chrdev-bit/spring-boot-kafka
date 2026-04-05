@@ -1,111 +1,102 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Kafka Data Metrics</title>
+    <title>Kafka Metrics</title>
+    <script src="chart.js"></script>
 </head>
 <body>
 
 <canvas id="kafkaChart" width="900" height="400"></canvas>
-<script src="chart.js"></script>
+
 <script>
     const ctx = document.getElementById('kafkaChart').getContext('2d');
 
-    const trackedMetrics = [
-        "consumer-node-metrics.outgoing-byte-rate",
-        "consumer-node-metrics.incoming-byte-rate",
-        "producer-node-metrics.outgoing-byte-rate",
-        "producer-node-metrics.incoming-byte-rate"
-    ];
-
-      const colors = [
-      {
-        border: 'rgba(54, 162, 235, 1)',
-        background: 'rgba(54, 162, 235, 0.2)'
-      },
-      {
-        border: 'rgba(255, 99, 132, 1)',
-        background: 'rgba(255, 99, 132, 0.2)'
-      },
-      {
-        border: 'rgba(75, 192, 192, 1)',
-        background: 'rgba(75, 192, 192, 0.2)'
-      },
-      {
-        border: 'rgba(255, 206, 86, 1)',
-        background: 'rgba(255, 206, 86, 0.2)'
-      }
-    ];
-
-    //empty chart container
+    // Rolling chart data
     const chartData = {
-      labels: [],
-      datasets: trackedMetrics.map((metric, i) => {
-        const color = colors[i % colors.length];
-        return {
-          label: metric,
-          data: [],
-          borderColor: color.border,
-          backgroundColor: color.background,
-          fill: true,
-          tension: 0.3
-        };
-      })
+        labels: [],
+        datasets: []
     };
 
-    const kafkaChart = new Chart(ctx, {
-      type: 'line',
-      data: chartData,
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: {
-            display: true,
-            text: 'Kafka Metrics Overview',
-            font: {
-              family: 'Poppins, Inter, sans-serif',
-              size: 18,
-              weight: '600'
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true },
-          x: { title: { display: true, text: 'Timestamp' } }
-        }
-      }
-    });
+    // Map to track which key corresponds to which dataset index
+    const datasetMap = {};
 
-    function pollMetrics() {
-      fetch("/api/kafka-metrics")
-        .then(res => res.json())
-        .then(data => {
-          const timestamp = new Date().toLocaleTimeString();
-          chartData.labels.push(timestamp);
-
-          chartData.datasets.forEach(ds => {
-            const fullKey = trackedMetrics.find(k => k === ds.label);
-            let val = data[fullKey];
-            val = (val === "NaN") ? 0 : Number(val);
-            ds.data.push(val);
-          });
-
-          //trim recent
-          if (chartData.labels.length > 20) {
-            chartData.labels.shift();
-            chartData.datasets.forEach(ds => ds.data.shift());
-          }
-
-          kafkaChart.update();
-        })
-        .catch(err => console.error("Error fetching metrics:", err));
+    // Function to generate visually distinct colors
+    function generateColor(index, total) {
+        const hue = (index * 360 / total) % 360;
+        return {
+            border: `hsl(${hue}, 70%, 50%)`,
+            background: `hsl(${hue}, 70%, 80%)`
+        };
     }
 
-    //poll
+    // Create Chart.js chart
+    const kafkaChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: {
+                    display: true,
+                    text: 'Kafka Metrics Overview',
+                    font: { family: 'Poppins, Inter, sans-serif', size: 18, weight: '600' },
+                    padding: { top: 10, bottom: 20 }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true },
+                x: { title: { display: true, text: 'Timestamp' } }
+            }
+        }
+    });
+
+    // Poll metrics from server every 2s
+    function pollMetrics() {
+        fetch("/api/kafka-metrics")
+            .then(res => res.json())
+            .then(data => {
+                const timestamp = new Date().toLocaleTimeString();
+                chartData.labels.push(timestamp);
+
+                // Add new keys dynamically
+                Object.keys(data).forEach((key, i, arr) => {
+                    if (!(key in datasetMap)) {
+                        const color = generateColor(Object.keys(datasetMap).length, arr.length);
+                        const newDataset = {
+                            label: key,
+                            data: Array(chartData.labels.length - 1).fill(0), // fill previous labels with 0
+                            borderColor: color.border,
+                            backgroundColor: color.background,
+                            fill: false,
+                            tension: 0.3
+                        };
+                        chartData.datasets.push(newDataset);
+                        datasetMap[key] = chartData.datasets.length - 1;
+                    }
+                });
+
+                // Update dataset values
+                Object.entries(data).forEach(([key, val]) => {
+                    const index = datasetMap[key];
+                    val = val == null || isNaN(val) ? 0 : Number(val);
+                    chartData.datasets[index].data.push(val);
+                });
+
+                // Keep last 20 data points
+                if (chartData.labels.length > 20) {
+                    chartData.labels.shift();
+                    chartData.datasets.forEach(ds => ds.data.shift());
+                }
+
+                kafkaChart.update();
+            })
+            .catch(err => console.error("Error fetching metrics:", err));
+    }
+
+    // Start polling
     setInterval(pollMetrics, 2000);
 </script>
+
 </body>
 </html>
