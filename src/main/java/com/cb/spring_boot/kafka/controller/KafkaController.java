@@ -1,12 +1,13 @@
 package com.cb.spring_boot.kafka.controller;
 
-import com.cb.spring_boot.kafka.model.KafkaMetricsSnapshot;
 import com.cb.spring_boot.kafka.producer.MessageProducer;
 import com.cb.spring_boot.kafka.service.KafkaMetricsSnapshotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static java.lang.Thread.getAllStackTraces;
 

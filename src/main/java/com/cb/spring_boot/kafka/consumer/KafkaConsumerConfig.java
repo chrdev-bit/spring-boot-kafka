@@ -1,6 +1,5 @@
 package com.cb.spring_boot.kafka.consumer;
 
-import com.cb.spring_boot.kafka.producer.MessageProducer;
 import com.cb.spring_boot.kafka.service.KafkaMetricsSnapshotService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
