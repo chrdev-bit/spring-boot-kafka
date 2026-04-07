@@ -3,15 +3,15 @@ package com.cb.spring_boot.kafka.controller;
 import com.cb.spring_boot.kafka.producer.MessageProducer;
 import com.cb.spring_boot.kafka.service.KafkaMetricsSnapshotService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import static java.lang.Thread.getAllStackTraces;
-
-@RestController
+@Controller
 public class KafkaController {
 
     @Autowired
@@ -31,36 +31,6 @@ public class KafkaController {
     @GetMapping("/api/kafka-metrics")
     public Map<String, Double> getKafkaMetrics() {
         return snapshotService.getSnapshot();
-    }
-
-    @GetMapping("/status")
-    public @ResponseBody String status() {
-        Map<Thread, StackTraceElement[]> stt = getAllStackTraces();
-        Set<String> uniq = new HashSet<>();
-        for(Thread t:stt.keySet()){
-            ThreadGroup group = t.getThreadGroup();
-            System.out.println(t+":");
-            StackTraceElement [] ste = stt.get(t);
-            for(StackTraceElement st:ste){
-                System.out.println("\t"+st);
-            }
-            System.out.println();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("<div id=\"content\"/>\r\n");
-        sb.append("<script>\r\n");
-        sb.append("function status(){\r\n");
-        sb.append("   const xhttp = new XMLHttpRequest()\r\n");
-        sb.append("   xhttp.onload = function() {\r\n");
-        sb.append("       document.getElementById(\"content\").innerHTML = this.responseText;\r\n");
-        sb.append("   }\r\n");                               //AJAX is now just JAX? :)
-        sb.append("   xhttp.open(\"GET\", \"/status_ajax\", false);\r\n");
-        sb.append("   xhttp.send();\r\n");
-        sb.append("}\r\n");
-        sb.append("var intervalId = window.setInterval('status()', 3000);\r\n");
-        sb.append("</script>");
-
-        return sb.toString();
     }
 
     @GetMapping("/status_ajax")

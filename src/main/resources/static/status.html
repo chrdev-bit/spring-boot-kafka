@@ -1,0 +1,16 @@
+<html>
+<head><title>Heap Stats</title></head>
+<body>
+<div id="content"></div>
+
+<script>
+    async function status() {
+        const res = await fetch('/status_ajax');
+        const text = await res.text();
+        document.getElementById("content").innerHTML = text;
+    }
+    setInterval(status, 3000);
+    status();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+app:
+  allowed-keys:
+    - consumer-node-metrics.outgoing-byte-rate
+    - consumer-node-metrics.incoming-byte-rate
+    - producer-node-metrics.outgoing-byte-rate
+    - producer-node-metrics.incoming-byte-rate
+    - producer-metrics.batch-size-avg
+    - producer-metrics.record-send-rate
+    - consumer-fetch-manager-metrics.records-consumed-rate
